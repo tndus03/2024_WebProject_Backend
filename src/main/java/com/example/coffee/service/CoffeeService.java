@@ -24,9 +24,9 @@ public class CoffeeService {
         return repository.findByUserId(entity.getUserId());
     }
 
-    // public List<CoffeeEntity> retrieve(final String userId) {
-    // return repository.findByUserId(userId);
-    // }
+     public List<CoffeeEntity> retrieve(final String userId) {
+     return repository.findByUserId(userId);
+     }
 
     public List<CoffeeEntity> retrieveByTitle(final String title) {
         return repository.findByTitle(title);
