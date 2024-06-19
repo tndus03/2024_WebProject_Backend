@@ -24,35 +24,36 @@ public class CoffeeService {
         return repository.findByUserId(entity.getUserId());
     }
 
-     public List<CoffeeEntity> retrieve(final String userId) {
-     return repository.findByUserId(userId);
-     }
-
-    public List<CoffeeEntity> retrieveByTitle(final String title) {
-        return repository.findByTitle(title);
+    public List<CoffeeEntity> retrieve(final String userId) {
+        return repository.findByUserId(userId);
     }
 
-    public List<CoffeeEntity> retrieveAll() {
-        return repository.findAll();
+    public List<CoffeeEntity> retrieveByTitle(final String userId, final String title) {
+        // return repository.findByTitle(title);
+        return repository.findByUserIdAndTitle(userId, title);
     }
 
-    public CoffeeEntity update(final CoffeeEntity entity) { // 수정된 것만 보이는 코드
+    public List<CoffeeEntity> retrieveAll(final String userId) {
+        // return repository.findAll();
+        return repository.findByUserId(userId);
+    }
+
+    public CoffeeEntity update(final CoffeeEntity entity) {
         validate(entity);
 
-        CoffeeEntity updatedCoffee = null;
         final Optional<CoffeeEntity> original = repository.findById(entity.getId());
 
         if (original.isPresent()) {
-            final CoffeeEntity coffee = original.get();
+            CoffeeEntity coffee = original.get();
             coffee.setUserId(entity.getUserId());
             coffee.setTitle(entity.getTitle());
             coffee.setBrand(entity.getBrand());
             coffee.setBeans(entity.getBeans());
 
-            updatedCoffee = repository.save(coffee);
+            return repository.save(coffee);
+        } else {
+            throw new IllegalArgumentException("No coffee found with the given ID.");
         }
-
-        return updatedCoffee;
     }
 
     public List<CoffeeEntity> delete(final CoffeeEntity entity) {
@@ -65,7 +66,8 @@ public class CoffeeService {
             throw new RuntimeException("error deleting entity " + entity.getId());
         }
 
-        return retrieveAll();
+        // return retrieveAll();
+        return repository.findByUserId(entity.getUserId());
     }
 
     public void validate(final CoffeeEntity entity) {

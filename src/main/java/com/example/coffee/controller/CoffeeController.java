@@ -4,11 +4,12 @@ import com.example.coffee.dto.CoffeeDTO;
 import com.example.coffee.dto.ResponseDTO;
 import com.example.coffee.model.CoffeeEntity;
 import com.example.coffee.service.CoffeeService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,11 +21,12 @@ public class CoffeeController {
     private CoffeeService service;
 
     @PostMapping
-    public ResponseEntity<?> createCoffee(@RequestBody CoffeeDTO dto) {
+    public ResponseEntity<?> createCoffee(@AuthenticationPrincipal String userId, @RequestBody CoffeeDTO dto) {
         try {
             CoffeeEntity entity = CoffeeDTO.toEntity(dto);
-
-            List<CoffeeEntity> entities = service.create(entity);
+            entity.setUserId(userId); // 토큰 통해 받은 userId
+            service.create(entity);
+            List<CoffeeEntity> entities = service.retrieveAll(userId); // 원래: service.retrieveAll();
             List<CoffeeDTO> dtos = entities.stream().map(CoffeeDTO::new).collect(Collectors.toList());
             ResponseDTO<CoffeeDTO> response = ResponseDTO.<CoffeeDTO>builder().data(dtos).build();
 
@@ -38,43 +40,61 @@ public class CoffeeController {
     }
 
     @GetMapping
-    public ResponseEntity<?> retrieveCoffee(@RequestBody(required = false) CoffeeDTO dto) {
-        if (dto != null && dto.getTitle() != null) {
-            List<CoffeeEntity> entities = service.retrieveByTitle(dto.getTitle());
-            List<CoffeeDTO> dtos = entities.stream().map(CoffeeDTO::new).collect(Collectors.toList());
-            ResponseDTO<CoffeeDTO> response = ResponseDTO.<CoffeeDTO>builder().data(dtos).build();
-
-            return ResponseEntity.ok().body(response);
+    public ResponseEntity<?> retrieveCoffee(@AuthenticationPrincipal String userId,
+            @RequestParam(required = false) String title) {
+        List<CoffeeEntity> entities;
+        if (title != null && !title.isEmpty()) {
+            entities = service.retrieveByTitle(userId, title);
         } else {
-            List<CoffeeEntity> entities = service.retrieveAll();
-            List<CoffeeDTO> dtos = entities.stream().map(CoffeeDTO::new).collect(Collectors.toList());
-            ResponseDTO<CoffeeDTO> response = ResponseDTO.<CoffeeDTO>builder().data(dtos).build();
-
-            return ResponseEntity.ok().body(response);
+            // entities = service.retrieveAll();
+            entities = service.retrieve(userId);
         }
-    }
 
-    @PutMapping
-    public ResponseEntity<?> updateCoffee(@RequestBody CoffeeDTO dto) {
-        CoffeeEntity entity = CoffeeDTO.toEntity(dto);
-        CoffeeEntity updatedEntity = service.update(entity);
-        CoffeeDTO updatedDto = new CoffeeDTO(updatedEntity);
-        ResponseDTO<CoffeeDTO> response = ResponseDTO.<CoffeeDTO>builder().data(Collections.singletonList(updatedDto))
-                .build();
+        if (entities.isEmpty()) {
+            return ResponseEntity.ok().body(ResponseDTO.<CoffeeDTO>builder().error("No items found").build());
+        }
+
+        List<CoffeeDTO> dtos = entities.stream().map(CoffeeDTO::new).collect(Collectors.toList());
+        ResponseDTO<CoffeeDTO> response = ResponseDTO.<CoffeeDTO>builder().data(dtos).build();
 
         return ResponseEntity.ok().body(response);
     }
 
-    @DeleteMapping
-    public ResponseEntity<?> deleteCoffee(@RequestBody CoffeeDTO dto) {
+    @PutMapping
+    public ResponseEntity<?> updateCoffee(@AuthenticationPrincipal String userId, @RequestBody CoffeeDTO dto) {
         try {
-            String temporaryUserId = "Sooyeon Hong";
-
             CoffeeEntity entity = CoffeeDTO.toEntity(dto);
-            entity.setUserId(temporaryUserId);
+            entity.setUserId(userId);
+            CoffeeEntity updatedEntity = service.update(entity);
+            CoffeeDTO updatedDto = new CoffeeDTO(updatedEntity);
 
-            List<CoffeeEntity> entities = service.delete(entity);
-            List<CoffeeDTO> dtos = entities.stream().map(CoffeeDTO::new).collect(Collectors.toList());
+            return ResponseEntity.ok(updatedDto);
+        } catch (Exception e) {
+            String error = e.getMessage();
+            ResponseDTO<CoffeeDTO> response = ResponseDTO.<CoffeeDTO>builder().error(error).build();
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteCoffee(@AuthenticationPrincipal String userId, @RequestBody CoffeeDTO dto) {
+        try {
+            String title = dto.getTitle();
+            if (title == null || title.isEmpty()) {
+                throw new IllegalArgumentException("Title must not be null or empty");
+            }
+
+            List<CoffeeEntity> entities = service.retrieveByTitle(userId, title); // 원래: service.retrieveByTitle(title);
+            if (entities.isEmpty()) {
+                throw new IllegalArgumentException("No coffee found with the given title");
+            }
+
+            CoffeeEntity entityToDelete = entities.get(0);
+            // entityToDelete.setUserId(userId);
+            service.delete(entityToDelete);
+
+            List<CoffeeEntity> allEntities = service.retrieveAll(userId);
+            List<CoffeeDTO> dtos = allEntities.stream().map(CoffeeDTO::new).collect(Collectors.toList());
             ResponseDTO<CoffeeDTO> response = ResponseDTO.<CoffeeDTO>builder().data(dtos).build();
 
             return ResponseEntity.ok().body(response);
