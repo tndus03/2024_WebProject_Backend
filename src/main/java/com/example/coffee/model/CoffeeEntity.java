@@ -19,8 +19,8 @@ import org.hibernate.annotations.GenericGenerator;
 @Table(name = "Coffee")
 public class CoffeeEntity {
   @Id
-  @GeneratedValue(generator="system-uuid")
-  @GenericGenerator(name="system-uuid", strategy="uuid")
+  @GeneratedValue(generator = "system-uuid")
+  @GenericGenerator(name = "system-uuid", strategy = "uuid")
   private String id;
   private String userId;
   private String title;

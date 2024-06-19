@@ -29,12 +29,10 @@ public class CoffeeService {
     }
 
     public List<CoffeeEntity> retrieveByTitle(final String userId, final String title) {
-        // return repository.findByTitle(title);
         return repository.findByUserIdAndTitle(userId, title);
     }
 
     public List<CoffeeEntity> retrieveAll(final String userId) {
-        // return repository.findAll();
         return repository.findByUserId(userId);
     }
 
@@ -66,7 +64,6 @@ public class CoffeeService {
             throw new RuntimeException("error deleting entity " + entity.getId());
         }
 
-        // return retrieveAll();
         return repository.findByUserId(entity.getUserId());
     }
 

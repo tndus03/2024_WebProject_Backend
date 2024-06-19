@@ -24,9 +24,9 @@ public class CoffeeController {
     public ResponseEntity<?> createCoffee(@AuthenticationPrincipal String userId, @RequestBody CoffeeDTO dto) {
         try {
             CoffeeEntity entity = CoffeeDTO.toEntity(dto);
-            entity.setUserId(userId); // 토큰 통해 받은 userId
+            entity.setUserId(userId);
             service.create(entity);
-            List<CoffeeEntity> entities = service.retrieveAll(userId); // 원래: service.retrieveAll();
+            List<CoffeeEntity> entities = service.retrieveAll(userId);
             List<CoffeeDTO> dtos = entities.stream().map(CoffeeDTO::new).collect(Collectors.toList());
             ResponseDTO<CoffeeDTO> response = ResponseDTO.<CoffeeDTO>builder().data(dtos).build();
 
@@ -46,7 +46,6 @@ public class CoffeeController {
         if (title != null && !title.isEmpty()) {
             entities = service.retrieveByTitle(userId, title);
         } else {
-            // entities = service.retrieveAll();
             entities = service.retrieve(userId);
         }
 
@@ -84,13 +83,12 @@ public class CoffeeController {
                 throw new IllegalArgumentException("Title must not be null or empty");
             }
 
-            List<CoffeeEntity> entities = service.retrieveByTitle(userId, title); // 원래: service.retrieveByTitle(title);
+            List<CoffeeEntity> entities = service.retrieveByTitle(userId, title);
             if (entities.isEmpty()) {
                 throw new IllegalArgumentException("No coffee found with the given title");
             }
 
             CoffeeEntity entityToDelete = entities.get(0);
-            // entityToDelete.setUserId(userId);
             service.delete(entityToDelete);
 
             List<CoffeeEntity> allEntities = service.retrieveAll(userId);
