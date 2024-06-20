@@ -17,6 +17,7 @@ public class CoffeeDTO {
   private String title;
   private String brand;
   private String beans;
+  private boolean favorite;
 
   public CoffeeDTO(final CoffeeEntity entity) {
     this.id = entity.getId();
@@ -24,6 +25,7 @@ public class CoffeeDTO {
     this.title = entity.getTitle();
     this.brand = entity.getBrand();
     this.beans = entity.getBeans();
+    this.favorite = entity.isFavorite();
   }
 
   public static CoffeeEntity toEntity(final CoffeeDTO dto) {
@@ -33,6 +35,7 @@ public class CoffeeDTO {
         .title(dto.getTitle())
         .brand(dto.getBrand())
         .beans(dto.getBeans())
+        .favorite(dto.isFavorite())
         .build();
   }
 }

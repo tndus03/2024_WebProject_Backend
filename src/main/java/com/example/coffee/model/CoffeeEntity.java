@@ -26,4 +26,5 @@ public class CoffeeEntity {
   private String title;
   private String brand;
   private String beans;
+  private boolean favorite;
 }

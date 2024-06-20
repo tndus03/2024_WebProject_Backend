@@ -64,7 +64,24 @@ public class CoffeeService {
             throw new RuntimeException("error deleting entity " + entity.getId());
         }
 
-        return repository.findByUserId(entity.getUserId());
+        return retrieveAll(entity.getUserId());
+    }
+
+    public CoffeeEntity toggleFavorite(final String userId, final String id) {
+        final Optional<CoffeeEntity> original = repository.findById(id);
+
+        if (original.isPresent()) {
+            CoffeeEntity coffee = original.get();
+            coffee.setFavorite(!coffee.isFavorite());
+            repository.save(coffee);
+            return coffee;
+        } else {
+            throw new IllegalArgumentException("No coffee found with the given ID.");
+        }
+    }
+
+    public List<CoffeeEntity> getFavorites(final String userId) {
+        return repository.findByUserIdAndFavorite(userId, true);
     }
 
     public void validate(final CoffeeEntity entity) {

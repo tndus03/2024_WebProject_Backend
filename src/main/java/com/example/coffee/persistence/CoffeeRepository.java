@@ -11,4 +11,6 @@ public interface CoffeeRepository extends JpaRepository<CoffeeEntity, String> {
     List<CoffeeEntity> findByUserId(String userId);
 
     List<CoffeeEntity> findByUserIdAndTitle(String userId, String title);
+
+    List<CoffeeEntity> findByUserIdAndFavorite(String userId, boolean favorite);
 }

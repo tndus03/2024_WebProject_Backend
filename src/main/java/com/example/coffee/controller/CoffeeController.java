@@ -103,4 +103,31 @@ public class CoffeeController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
+    @PutMapping("/favorite/{id}")
+    public ResponseEntity<?> toggleFavorite(@AuthenticationPrincipal String userId, @PathVariable String id) {
+        try {
+            CoffeeEntity entity = service.toggleFavorite(userId, id);
+            CoffeeDTO dto = new CoffeeDTO(entity);
+            return ResponseEntity.ok().body(dto);
+        } catch (Exception e) {
+            String error = e.getMessage();
+            ResponseDTO<CoffeeDTO> response = ResponseDTO.<CoffeeDTO>builder().error(error).build();
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @GetMapping("/favorites")
+    public ResponseEntity<?> getFavorites(@AuthenticationPrincipal String userId) {
+        try {
+            List<CoffeeEntity> entities = service.getFavorites(userId);
+            List<CoffeeDTO> dtos = entities.stream().map(CoffeeDTO::new).collect(Collectors.toList());
+            ResponseDTO<CoffeeDTO> response = ResponseDTO.<CoffeeDTO>builder().data(dtos).build();
+            return ResponseEntity.ok().body(response);
+        } catch (Exception e) {
+            String error = e.getMessage();
+            ResponseDTO<CoffeeDTO> response = ResponseDTO.<CoffeeDTO>builder().error(error).build();
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 }
